@@ -23,6 +23,7 @@
 package bloom
 
 import (
+	"encoding/binary"
 	"hash"
 
 	"github.com/spaolacci/murmur3"
@@ -39,31 +40,63 @@ type Filter struct {
 	v bitset
 
 	// hash function
+	// default hash function is murmur3
 	h hash.Hash64
 }
 
-func NewFilter(size uint64, numberOfHash int) (*Filter, error) {
+func NewFilter(size uint64, numberOfHash int) *Filter {
 	return &Filter{
 		m: size,
 		k: numberOfHash,
 		v: NewBitSet(size),
 		h: murmur3.New64(),
-	}, nil
+	}
 }
 
-func (f *Filter) Add(key []byte) {
+func NewFilterWithHash(size uint64, numberOfHash int, userHash hash.Hash64) *Filter {
+	return &Filter{
+		m: size,
+		k: numberOfHash,
+		v: NewBitSet(size),
+		h: userHash,
+	}
+}
+
+func (f *Filter) Add(key []byte) error {
 	for i := uint32(0); i < uint32(f.k); i++ {
-		index := murmur3.Sum64WithSeed(key, i)
+		index, err := f.location(key, i)
+		if err != nil {
+			return err
+		}
+
 		f.v.set(index)
 	}
+	return nil
 }
 
-func (f *Filter) Has(key []byte) bool {
+func (f *Filter) Has(key []byte) (bool, error) {
 	for i := uint32(0); i < uint32(f.k); i++ {
-		index := murmur3.Sum64WithSeed(key, i)
-		if !f.v.get(index) {
-			return false
+		if index, err := f.location(key, i); err != nil || !f.v.get(index) {
+			return false, nil
 		}
 	}
-	return true
+	return true, nil
+}
+
+func (f *Filter) location(key []byte, seed uint32) (uint64, error) {
+	f.h.Reset()
+
+	if _, err := f.h.Write(key); err != nil {
+		return 0, nil
+	}
+
+	s := f.h.Sum64()
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, s)
+
+	lower := binary.BigEndian.Uint32(b[4:])
+	higher := binary.BigEndian.Uint32(b[:4])
+
+	v := (uint64(lower) + (uint64(higher) * uint64(seed))) % f.m
+	return v, nil
 }

@@ -21,3 +21,61 @@
 // SOFTWARE.
 
 package bloom
+
+import (
+	"hash/fnv"
+	"strconv"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+const (
+	TestFilterSize uint64 = 1024
+)
+
+func TestAdd(t *testing.T) {
+	t.Run("add", func(t *testing.T) {
+		// given
+		f := NewFilter(TestFilterSize, 3)
+
+		// when
+		testKey := []byte("test")
+		err := f.Add(testKey)
+		assert.Nil(t, err)
+
+		// then
+		has, err := f.Has(testKey)
+		assert.Nil(t, err)
+		assert.True(t, has)
+	})
+
+	fnv.New64()
+}
+
+func BenchmarkFilterAdd(b *testing.B) {
+	f := NewFilter(TestFilterSize, 3)
+
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		key := []byte(strconv.Itoa(i))
+		b.StartTimer()
+
+		f.Add(key)
+	}
+}
+
+func BenchmarkFilterHas(b *testing.B) {
+	f := NewFilter(TestFilterSize, 3)
+
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		key := []byte(strconv.Itoa(i))
+		f.Add(key)
+		b.StartTimer()
+
+		if has, err := f.Has(key); !has || err != nil {
+			b.Fatal()
+		}
+	}
+}
