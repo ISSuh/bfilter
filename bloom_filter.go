@@ -20,22 +20,50 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package bfilter
+package bloom
+
+import (
+	"hash"
+
+	"github.com/spaolacci/murmur3"
+)
 
 type Filter struct {
-	size int
+	// number of bitset size
+	m uint64
+
+	// number of hash
+	k int
+
+	// bitset
+	v bitset
+
+	// hash function
+	h hash.Hash64
 }
 
-func NewFilter(size int) (*Filter, error) {
+func NewFilter(size uint64, numberOfHash int) (*Filter, error) {
 	return &Filter{
-		size: size,
+		m: size,
+		k: numberOfHash,
+		v: NewBitSet(size),
+		h: murmur3.New64(),
 	}, nil
 }
 
 func (f *Filter) Add(key []byte) {
-
+	for i := uint32(0); i < uint32(f.k); i++ {
+		index := murmur3.Sum64WithSeed(key, i)
+		f.v.set(index)
+	}
 }
 
 func (f *Filter) Has(key []byte) bool {
-	return false
+	for i := uint32(0); i < uint32(f.k); i++ {
+		index := murmur3.Sum64WithSeed(key, i)
+		if !f.v.get(index) {
+			return false
+		}
+	}
+	return true
 }

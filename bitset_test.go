@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package bfilter
+package bloom
 
 import (
 	"testing"
@@ -119,11 +119,11 @@ func TestBytes(t *testing.T) {
 
 func BenchmarkBitset(b *testing.B) {
 	size := 1000
-	bitset := NewBitSet(size)
+	bitset := NewBitSet(uint64(size))
 
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
-		location := uint(i % size)
+		location := uint64(i % size)
 		b.StartTimer()
 
 		bitset.set(location)
@@ -132,11 +132,11 @@ func BenchmarkBitset(b *testing.B) {
 
 func BenchmarkBitsetSizePowerOfByte(b *testing.B) {
 	size := 1024
-	bitset := NewBitSet(size)
+	bitset := NewBitSet(uint64(size))
 
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
-		location := uint(i % size)
+		location := uint64(i % size)
 		b.StartTimer()
 
 		bitset.set(location)
@@ -145,12 +145,12 @@ func BenchmarkBitsetSizePowerOfByte(b *testing.B) {
 
 func BenchmarkGet(b *testing.B) {
 	size := 1024
-	bitset := NewBitSet(size)
+	bitset := NewBitSet(uint64(size))
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
-		bitset.set(uint(i))
+		bitset.set(uint64(i))
 		b.StartTimer()
 
-		bitset.get(uint(i))
+		bitset.get(uint64(i))
 	}
 }

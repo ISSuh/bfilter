@@ -20,25 +20,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package bfilter
+package bloom
 
 const (
-	ByteSize        uint = 8
-	PowerOfByteSize uint = 3
+	ByteSize        uint64 = 8
+	PowerOfByteSize uint64 = 3
 )
 
 type bitset struct {
 	bits []byte
 }
 
-func NewBitSet(size int) bitset {
+func NewBitSet(size uint64) bitset {
 	bitsetSize := (size >> PowerOfByteSize) + 1
 	return bitset{
-		bits: make([]uint8, bitsetSize),
+		bits: make([]byte, bitsetSize),
 	}
 }
 
-func (b *bitset) setValue(location uint, value bool) *bitset {
+func (b *bitset) setValue(location uint64, value bool) *bitset {
 	index := location >> PowerOfByteSize
 	offset := location % ByteSize
 
@@ -57,7 +57,7 @@ func (b *bitset) setValue(location uint, value bool) *bitset {
 	return b
 }
 
-func (b *bitset) set(location uint) *bitset {
+func (b *bitset) set(location uint64) *bitset {
 	index := location >> PowerOfByteSize
 	offset := location % ByteSize
 
@@ -76,7 +76,7 @@ func (b *bitset) set(location uint) *bitset {
 	return b
 }
 
-func (b *bitset) get(location uint) bool {
+func (b *bitset) get(location uint64) bool {
 	index := location >> PowerOfByteSize
 	offset := location % ByteSize
 

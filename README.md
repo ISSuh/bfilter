@@ -1,2 +1,2 @@
-# bfilter
+# bloom
 implement bloom filter on Golang
