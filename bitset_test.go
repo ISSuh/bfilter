@@ -117,7 +117,7 @@ func TestBytes(t *testing.T) {
 	})
 }
 
-func BenchmarkBitset(b *testing.B) {
+func BenchmarkBitsetSet(b *testing.B) {
 	size := 1000
 	bitset := NewBitSet(uint64(size))
 
@@ -130,7 +130,7 @@ func BenchmarkBitset(b *testing.B) {
 	}
 }
 
-func BenchmarkBitsetSizePowerOfByte(b *testing.B) {
+func BenchmarkBitsetSetSizePowerOfByte(b *testing.B) {
 	size := 1024
 	bitset := NewBitSet(uint64(size))
 
@@ -143,7 +143,7 @@ func BenchmarkBitsetSizePowerOfByte(b *testing.B) {
 	}
 }
 
-func BenchmarkGet(b *testing.B) {
+func BenchmarkBitsetGet(b *testing.B) {
 	size := 1024
 	bitset := NewBitSet(uint64(size))
 	for i := 0; i < b.N; i++ {

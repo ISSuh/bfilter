@@ -38,32 +38,9 @@ func NewBitSet(size uint64) bitset {
 	}
 }
 
-func (b *bitset) setValue(location uint64, value bool) *bitset {
-	index := location >> PowerOfByteSize
-	offset := location % ByteSize
-
-	if int(index) >= len(b.bits) {
-		b.extend()
-	}
-
-	bits := b.bits[index]
-
-	// calculate bit and set
-	target := byte((1 << (ByteSize - offset - 1)))
-	bits |= target
-
-	// set bits
-	b.bits[index] = bits
-	return b
-}
-
 func (b *bitset) set(location uint64) *bitset {
 	index := location >> PowerOfByteSize
 	offset := location % ByteSize
-
-	if int(index) >= len(b.bits) {
-		b.extend()
-	}
 
 	bits := b.bits[index]
 
@@ -95,8 +72,4 @@ func (b *bitset) clear() {
 
 func (b *bitset) bytes() []byte {
 	return b.bits
-}
-
-func (b *bitset) extend() {
-	b.bits = append(b.bits, 0)
 }

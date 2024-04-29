@@ -24,6 +24,7 @@ package bloom
 
 import (
 	"encoding/binary"
+	"fmt"
 	"hash"
 
 	"github.com/spaolacci/murmur3"
@@ -53,13 +54,17 @@ func NewFilter(size uint64, numberOfHash int) *Filter {
 	}
 }
 
-func NewFilterWithHash(size uint64, numberOfHash int, userHash hash.Hash64) *Filter {
+func NewFilterWithHash(size uint64, numberOfHash int, userHash hash.Hash64) (*Filter, error) {
+	if userHash == nil {
+		return nil, fmt.Errorf("user hash function is nil")
+	}
+
 	return &Filter{
 		m: size,
 		k: numberOfHash,
 		v: NewBitSet(size),
 		h: userHash,
-	}
+	}, nil
 }
 
 func (f *Filter) Add(key []byte) error {

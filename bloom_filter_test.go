@@ -32,12 +32,51 @@ import (
 
 const (
 	TestFilterSize uint64 = 1024
+	TestFilterHash int    = 3
 )
 
 func TestAdd(t *testing.T) {
 	t.Run("add", func(t *testing.T) {
 		// given
-		f := NewFilter(TestFilterSize, 3)
+		f := NewFilter(TestFilterSize, TestFilterHash)
+
+		// when
+		testKey := []byte("test")
+		err := f.Add(testKey)
+
+		// then
+		assert.Nil(t, err)
+	})
+
+	t.Run("userHash", func(t *testing.T) {
+		// given
+		userHash := fnv.New64()
+		f, err := NewFilterWithHash(TestFilterSize, TestFilterHash, userHash)
+		assert.Nil(t, err)
+
+		// when
+		testKey := []byte("test")
+		err = f.Add(testKey)
+
+		// then
+		assert.Nil(t, err)
+	})
+
+	t.Run("emptyUserHash", func(t *testing.T) {
+		// given
+		// when
+		f, err := NewFilterWithHash(TestFilterSize, TestFilterHash, nil)
+
+		// then
+		assert.NotNil(t, err)
+		assert.Nil(t, f)
+	})
+}
+
+func TestHas(t *testing.T) {
+	t.Run("hasTrue", func(t *testing.T) {
+		// given
+		f := NewFilter(TestFilterSize, TestFilterHash)
 
 		// when
 		testKey := []byte("test")
@@ -50,23 +89,53 @@ func TestAdd(t *testing.T) {
 		assert.True(t, has)
 	})
 
-	fnv.New64()
+	t.Run("hasFalse", func(t *testing.T) {
+		// given
+		f := NewFilter(TestFilterSize, TestFilterHash)
+
+		// when
+		testKey := []byte("test")
+		has, err := f.Has(testKey)
+
+		// then
+		assert.Nil(t, err)
+		assert.False(t, has)
+	})
+
+	t.Run("userHash", func(t *testing.T) {
+		// given
+		userHash := fnv.New64()
+		f, err := NewFilterWithHash(TestFilterSize, TestFilterHash, userHash)
+		assert.Nil(t, err)
+
+		// when
+		testKey := []byte("test")
+		err = f.Add(testKey)
+		assert.Nil(t, err)
+
+		// then
+		has, err := f.Has(testKey)
+		assert.Nil(t, err)
+		assert.True(t, has)
+	})
 }
 
 func BenchmarkFilterAdd(b *testing.B) {
-	f := NewFilter(TestFilterSize, 3)
+	f := NewFilter(TestFilterSize, TestFilterHash)
 
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		key := []byte(strconv.Itoa(i))
 		b.StartTimer()
 
-		f.Add(key)
+		if err := f.Add(key); err != nil {
+			b.Fatal()
+		}
 	}
 }
 
 func BenchmarkFilterHas(b *testing.B) {
-	f := NewFilter(TestFilterSize, 3)
+	f := NewFilter(TestFilterSize, TestFilterHash)
 
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
